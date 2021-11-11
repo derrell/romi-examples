@@ -29,7 +29,17 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
-    // Control left motor with Joystick 0, Axis 5
-    leftMotor.set(-driverController.getY());
+    if (driverController.getAButton())
+    {
+      leftMotor.set(0.5);
+    }
+    else if (driverController.getBButton())
+    {
+      leftMotor.set(-0.5);
+    }
+    else
+    {
+      leftMotor.set(0);
+    }
   }
 }
