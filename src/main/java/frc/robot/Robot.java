@@ -6,15 +6,13 @@ import edu.wpi.first.wpilibj.Spark;
 
 public class Robot extends TimedRobot
 {
-  private Spark leftMotor;
-  private Spark rightMotor;
-  private XboxController driverController;
+  private int ticks; // number of times autonomousPeriodic has been entered
+  private Spark leftMotor;  // left motor controller
+  private Spark rightMotor; // right motor controller
+  private XboxController driverController;  // XBox controller for user input
 
   
-  /**
-   * This function is called when the robot is first started up and
-   * should be used for any initialization code.
-   */
+  /** This function is called once when the robot is started up */
   @Override
   public void robotInit()
   {
@@ -27,7 +25,7 @@ public class Robot extends TimedRobot
     driverController = new XboxController(0);
   }
 
-  /** This function is called periodically (every 20ms) */
+  /** This function is called periodically (every 20ms) while in teleop mode */
   @Override
   public void teleopPeriodic()
   {
@@ -55,6 +53,33 @@ public class Robot extends TimedRobot
     {
       leftMotor.set(0);
       rightMotor.set(0);
+    }
+  }
+
+  /** this function is called once each time autonomous mode is entered */
+  @Override
+  public void autonomousInit()
+  {
+    ticks = 0;
+  }
+
+  /** This function is called periodically (every 20 ms) while in autonomous mode */
+  @Override
+  public void autonomousPeriodic()
+  {
+    // Have we reached our time limit yet?
+    // 50 ticks per second, for 3 seconds
+    if (ticks++ >= 50 * 3)
+    {
+      // Yup. Stop both motors
+      leftMotor.set(0);
+      rightMotor.set(0);
+    }
+    else
+    {
+      // Not yet at time limit. Keep moving
+      leftMotor.set(0.5);
+      rightMotor.set(-0.5);
     }
   }
 }
