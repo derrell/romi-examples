@@ -11,7 +11,7 @@ public class Robot extends TimedRobot
   final double WHEEL_DIAMETER_INCHES = 2.75591; // 70 mm
   final double TICKS_PER_REVOLUTION = 1440.0;
   final double INCHES_TO_MOVE = 24.0;
-  final double MOTOR_EQUALIZER_RATIO = 1.081;   // < 0 makes R motor power lower than L
+  final double MOTOR_EQUALIZER_RATIO = 1.081;   // > 0 makes R motor power greater than L
 
   // Member variables
   final double motorPower = 0.5; // power level to apply to motor [ 0, 1.0 ] (negated for backwards)
@@ -116,9 +116,18 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic()
   {
-    // Have we reached our destination?
+    // Have we reached our first destination?
     if (leftEncoder.get() >= ticksAtDestination)
     {
+      // Yup. Reverse direction
+      leftMotor.set(-motorPower);
+      rightMotor.set(-motorPower * MOTOR_EQUALIZER_RATIO);
+    }
+
+    // Have we reached our origin?
+    if (leftEncoder.get() < 0)
+    {
+      // Yup. Turn off the motors.
       leftMotor.set(0);
       rightMotor.set(0);
     }
