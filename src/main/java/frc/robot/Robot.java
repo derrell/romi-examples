@@ -3,24 +3,21 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.Spark;
-import edu.wpi.first.wpilibj.Encoder;
+import frc.robot.sensor.RomiGyro;
 
 public class Robot extends TimedRobot
 {
   // Constants
-  final double WHEEL_DIAMETER_INCHES = 2.75591; // 70 mm
-  final double TICKS_PER_REVOLUTION = 1440.0;
-  final double INCHES_TO_MOVE = 24.0;
   final double MOTOR_EQUALIZER_RATIO = 1.081;   // > 0 makes R motor power greater than L
 
   // Member variables
-  final double motorPower = 0.5; // power level to apply to motor [ 0, 1.0 ] (negated for backwards)
+  final double motorPowerHigh = 0.5; // high power level to apply to motor [ 0, 1.0 ] (negated for backwards)
+  final double motorPowerLow = 0.1;  // low power level to apply to motor [ 0, 1.0 ] (negated for backwards)
   double ticksAtDestination; // tick count when arriving at destination, in autonomous
   private Spark leftMotor;  // left motor controller
   private Spark rightMotor; // right motor controller
   private XboxController driverController;  // XBox controller for user input
-  private Encoder leftEncoder;
-  private Encoder rightEncoder;
+  private RomiGyro gyro;
 
   
   /** This function is called once when the robot is started up */
@@ -37,11 +34,8 @@ public class Robot extends TimedRobot
     // direction as the left motor.
     rightMotor.setInverted(true);
 
-    // The Romi has onboard encoders that are hardcoded
-    // to use DIO (digitil IO) pins 4/5 and 6/7 for the
-    // left and right
-    leftEncoder = new Encoder(4, 5);
-    rightEncoder = new Encoder(6, 7);
+    // Connect to the gyro
+    gyro = new RomiGyro();
 
     // Connect to the XBox controller
     driverController = new XboxController(0);
@@ -51,9 +45,6 @@ public class Robot extends TimedRobot
   @Override
   public void teleopInit()
   {
-    // Reset the two relative encoders back to zero
-    leftEncoder.reset();
-    rightEncoder.reset();
   }
 
   /** This function is called periodically (every 20ms) while in teleop mode */
@@ -62,74 +53,47 @@ public class Robot extends TimedRobot
   {
     if (driverController.getAButton())
     {
-      System.out.println("A");
-      leftMotor.set(motorPower);
-      rightMotor.set(motorPower * MOTOR_EQUALIZER_RATIO);
+      leftMotor.set(motorPowerHigh);
+      rightMotor.set(motorPowerHigh * MOTOR_EQUALIZER_RATIO);
     }
     else if (driverController.getBButton())
     {
-      System.out.println("B");
-      leftMotor.set(-motorPower);
-      rightMotor.set(-motorPower * MOTOR_EQUALIZER_RATIO);
+      leftMotor.set(-motorPowerHigh);
+      rightMotor.set(-motorPowerHigh * MOTOR_EQUALIZER_RATIO);
     }
     else if (driverController.getXButton())
     {
-      leftMotor.set(-motorPower);
-      rightMotor.set(motorPower * MOTOR_EQUALIZER_RATIO);
+      leftMotor.set(-motorPowerHigh);
+      rightMotor.set(motorPowerHigh * MOTOR_EQUALIZER_RATIO);
     }
     else if (driverController.getYButton())
     {
-      leftMotor.set(motorPower);
-      rightMotor.set(-motorPower * MOTOR_EQUALIZER_RATIO);
+      leftMotor.set(motorPowerHigh);
+      rightMotor.set(-motorPowerHigh * MOTOR_EQUALIZER_RATIO);
     }
     else
     {
       leftMotor.set(0);
       rightMotor.set(0);
     }
-
-    System.out.println("Encoder L: " + leftEncoder.get() + " R: " + rightEncoder.get());
   }
 
   /** this function is called once each time autonomous mode is entered */
   @Override
   public void autonomousInit()
   {
-    double circumference;
-    double fullRotationsNeeded;
+    // Reset the gyro so the robot's current heading is 0
+    gyro.reset();
 
-    // Reset the two relative encoders back to zero
-    leftEncoder.reset();
-    rightEncoder.reset();
-
-    // Calculate how many ticks are needed to go the specified INCHES_TO_MOVE
-    circumference = WHEEL_DIAMETER_INCHES * Math.PI;
-    fullRotationsNeeded = INCHES_TO_MOVE / circumference;
-    ticksAtDestination = Math.round(TICKS_PER_REVOLUTION * fullRotationsNeeded);
-
-    // Start the Romi moving forward
-    leftMotor.set(motorPower);
-    rightMotor.set(motorPower * MOTOR_EQUALIZER_RATIO);
+    // Start 
+    leftMotor.set(motorPowerLow);
+    rightMotor.set(-motorPowerLow * MOTOR_EQUALIZER_RATIO);
   }
 
   /** This function is called periodically (every 20 ms) while in autonomous mode */
   @Override
   public void autonomousPeriodic()
   {
-    // Have we reached our first destination?
-    if (leftEncoder.get() >= ticksAtDestination)
-    {
-      // Yup. Reverse direction
-      leftMotor.set(-motorPower);
-      rightMotor.set(-motorPower * MOTOR_EQUALIZER_RATIO);
-    }
-
-    // Have we reached our origin?
-    if (leftEncoder.get() < 0)
-    {
-      // Yup. Turn off the motors.
-      leftMotor.set(0);
-      rightMotor.set(0);
-    }
+    System.out.println("Gyro: X=" + Math.round(gyro.getAngleX()) + " Y=" + Math.round(gyro.getAngleY()) + " Z=" + Math.round(gyro.getAngleZ()));
   }
 }
