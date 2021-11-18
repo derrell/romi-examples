@@ -8,8 +8,7 @@ public class Robot extends TimedRobot
   private Spark leftMotor;
   
   /**
-   * This function is called when the robot is first started up and
-   * should be used for any initialization code.
+   * This function is called once each time teleop mode is entered.
    */
   @Override
   public void teleopInit()
@@ -19,7 +18,9 @@ public class Robot extends TimedRobot
     leftMotor = new Spark(0); // Spark is a type of motor controller
   }
 
-  /** This function is called periodically (every 20ms) */
+  /**
+   * This function is called periodically (every 20ms) while in teleop mode
+   */
   @Override
   public void teleopPeriodic()
   {
